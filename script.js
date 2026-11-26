@@ -10,7 +10,7 @@ window.matchMedia('(min-width:801px)').addEventListener('change',closeMenu);
 (() => {
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
   if (reduced.matches || !('IntersectionObserver' in window)) return;
-  const selectors = '.trust > div, .section-head, .care-grid > .care, .about-art, .about > div:last-child, .journey-grid > article, .clinic-info, .clinic-grid iframe, .social-wrap > div, .faq > div, .final-cta > .wrap';
+  const selectors = '.trust > div, .section-head, .about-art, .about > div:last-child, .clinic-info, .clinic-grid iframe, .social-wrap > div, .faq > div, .final-cta > .wrap';
   const elements = [...document.querySelectorAll(selectors)];
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(({target, isIntersecting}) => {
@@ -26,12 +26,27 @@ window.matchMedia('(min-width:801px)').addEventListener('change',closeMenu);
     element.classList.add('reveal-motion');
     observer.observe(element);
   });
+  const cards = [...document.querySelectorAll('.care-grid > .care, .journey-grid > article')];
+  const cardObserver = new IntersectionObserver((entries) => {
+    entries.forEach(({target, isIntersecting}) => {
+      if (!isIntersecting) return;
+      target.classList.add('is-visible');
+      cardObserver.unobserve(target);
+    });
+  }, {threshold: 0.15});
+  cards.forEach((card) => {
+    const index = Array.from(card.parentElement.children).indexOf(card);
+    card.style.setProperty('--card-delay', (index % 3) * 110 + 'ms');
+    card.classList.add('card-motion');
+    cardObserver.observe(card);
+  });
   document.documentElement.classList.add('reveal-ready');
   reduced.addEventListener?.('change', (event) => {
     if (event.matches) {
       observer.disconnect();
+      cardObserver.disconnect();
       document.documentElement.classList.remove('reveal-ready');
-      elements.forEach(element => element.classList.add('is-visible'));
+      [...elements, ...cards].forEach(element => element.classList.add('is-visible'));
     }
   });
 })();
